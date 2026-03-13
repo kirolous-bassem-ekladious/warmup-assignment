@@ -1,4 +1,63 @@
 const fs = require("fs");
+// HELPER: Convert a time string like "6:01:20 am" to total seconds since midnight
+// ============================================================
+function timeToSeconds(timeStr) {
+  // timeStr looks like "6:01:20 am" or "12:30:00 pm"
+  timeStr = timeStr.trim();
+  const parts = timeStr.split(" "); // ["6:01:20", "am"]
+  const period = parts[1].toLowerCase(); // "am" or "pm"
+  const timeParts = parts[0].split(":"); // ["6", "01", "20"]
+
+  let hours = parseInt(timeParts[0]);
+  let minutes = parseInt(timeParts[1]);
+  let seconds = parseInt(timeParts[2]);
+ 
+  // Convert 12-hour format to 24-hour format
+  if (period === "am") {
+    if (hours === 12) hours = 0; // 12:xx am = 0:xx in 24h
+  } else {
+    // pm
+    if (hours !== 12) hours += 12; // 1pm=13, 2pm=14... but 12pm stays 12
+  }
+ 
+  return hours * 3600 + minutes * 60 + seconds;
+}
+// ============================================================
+// HELPER: Convert a duration string like "6:40:20" (h:mm:ss) to total seconds
+// ============================================================
+function durationToSeconds(durStr) {
+  durStr = durStr.trim();
+  const parts = durStr.split(":");
+  let hours = parseInt(parts[0]);
+  let minutes = parseInt(parts[1]);
+  let seconds = parseInt(parts[2]);
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+// ============================================================
+// HELPER: Convert total seconds to "h:mm:ss" format
+// ============================================================
+function secondsToDuration(totalSec) {
+  let hours = Math.floor(totalSec / 3600);
+  let remaining = totalSec % 3600;
+  let minutes = Math.floor(remaining / 60);
+  let seconds = remaining % 60;
+  // Format: h:mm:ss (hours NOT zero-padded, minutes and seconds are)
+  return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+ 
+// ============================================================
+// HELPER: Convert total seconds to "hhh:mm:ss" format (for large totals)
+// ============================================================
+function secondsToLargeDuration(totalSec) {
+  let hours = Math.floor(totalSec / 3600);
+  let remaining = totalSec % 3600;
+  let minutes = Math.floor(remaining / 60);
+  let seconds = remaining % 60;
+  return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+ 
+// ============================================================
 
 // ============================================================
 // Function 1: getShiftDuration(startTime, endTime)
@@ -8,8 +67,19 @@ const fs = require("fs");
 // ============================================================
 function getShiftDuration(startTime, endTime) {
     // TODO: Implement this function
+  const startSec = timeToSeconds(startTime);
+  const endSec = timeToSeconds(endTime);
+
+  let diff = endSec - startSec;
+
+  // Handle overnight shifts safely
+  if (diff > 0) diff += 24 * 3600;
+
+  return secondsToDuration(diff);
 }
 
+
+// ============================================================
 // ============================================================
 // Function 2: getIdleTime(startTime, endTime)
 // startTime: (typeof string) formatted as hh:mm:ss am or hh:mm:ss pm
