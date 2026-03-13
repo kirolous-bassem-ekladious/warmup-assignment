@@ -73,7 +73,7 @@ function getShiftDuration(startTime, endTime) {
   let diff = endSec - startSec;
 
   // Handle overnight shifts safely
-  if (diff > 0) diff += 24 * 3600;
+  if (diff < 0) diff += 24 * 3600;
 
   return secondsToDuration(diff);
 }
